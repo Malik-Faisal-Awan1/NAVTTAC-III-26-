@@ -15,8 +15,8 @@ This repository contains my notes, lab exercises, assignments, and final project
 - **/resources** — slides, reference links, datasets, and cheat sheets
 
 ## How to use
-1. Clone the repo: `git clone https://github.com/Malik-Faisal-Awan1
-/NAVTTAC-III-26-.git`  
+1. Clone the repo: `git clone https://github.com/Malik-Faisal-Awan1/NAVTTAC-III-26-.git
+`  
 2. Create a virtual environment: `python -m venv venv`  
 3. Activate and install dependencies:  
    - Windows: `venv\Scripts\activate`  
