@@ -1,1 +1,25 @@
 https://onlinepgc-my.sharepoint.com/:f:/g/personal/fraz_aslam_ucp_edu_pk/IgCLv4APjDecS54WwHEbb1GoAbU1SXvJcJZicjawVKeJJy4?e=DnbYRX
+code:
+records = [
+ "101, Ali, CS, 78|82|91, city=Lahore",
+ "102, Sara, SE, 88|79|85, city=Karachi",
+ "103, Ahmed, CS, 90|92|89, city=Islamabad",
+ "101, Ali, CS, 78|82|91, city=Lahore",
+ "104, Hina, EE, 65|70|72, city= Lahore ",
+ "105, , CS, 80|81|82, city=Multan",
+ "106, Zoya, SE, 91|x|87, city=Karachi"
+]
+clean =[]
+city=[]
+marks=[]
+for i, n in enumerate(records):
+    parts = n.split(",")
+    cleared_parts = [p.strip() for p in parts]
+    clean.append(cleared_parts)
+
+    mark = cleared_parts[3].split("|")
+    marks.append(mark)
+
+    citys = cleared_parts[4].split("city=")[1].strip()
+    city.append(citys)
+    
