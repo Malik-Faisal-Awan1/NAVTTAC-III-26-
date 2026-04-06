@@ -1,5 +1,4 @@
 https://onlinepgc-my.sharepoint.com/:f:/g/personal/fraz_aslam_ucp_edu_pk/IgCLv4APjDecS54WwHEbb1GoAbU1SXvJcJZicjawVKeJJy4?e=DnbYRX
-code:
 records = [
  "101, Ali, CS, 78|82|91, city=Lahore",
  "102, Sara, SE, 88|79|85, city=Karachi",
@@ -11,15 +10,26 @@ records = [
 ]
 clean =[]
 city=[]
+sIds=[]
+names=[]
+deps=[]
 marks=[]
 for i, n in enumerate(records):
     parts = n.split(",")
     cleared_parts = [p.strip() for p in parts]
     clean.append(cleared_parts)
 
+    sIds.append(clean[i][0])
+    names.append(clean[i][1])
+    deps.append(clean[i][2])
+    
     mark = cleared_parts[3].split("|")
     marks.append(mark)
 
     citys = cleared_parts[4].split("city=")[1].strip()
     city.append(citys)
     
+for n in names:
+    if n.isalphabet():
+        
+print(names)
