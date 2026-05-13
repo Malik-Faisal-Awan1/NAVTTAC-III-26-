@@ -407,15 +407,15 @@ import streamlit as st
 import requests
 import pandas as pd
 
-st.set_page_config(page_title=\"REST API Consumer\", layout=\"wide\")
-st.title(\"RESTful API Consumer Frontend\")
-st.write(\"Consumes JSONPlaceholder API and displays data.\")
+st.set_page_config(page_title="REST API Consumer", layout="wide")
+st.title("RESTful API Consumer Frontend")
+st.write("Consumes JSONPlaceholder API and displays data.")
 
-BASE_URL = \"https://jsonplaceholder.typicode.com\"
-endpoint = st.selectbox(\"Select endpoint:\", [\"posts\", \"users\", \"comments\", \"albums\", \"todos\"])
+BASE_URL = "https://jsonplaceholder.typicode.com"
+endpoint = st.selectbox("Select endpoint:", ["posts", "users", "comments", "albums", "todos"])
 
-if st.button(\"Fetch Data\"):
-    url = f\"{BASE_URL}/{endpoint}\"
+if st.button("Fetch Data"):
+    url = f"{BASE_URL}/{endpoint}"
     response = requests.get(url, timeout=10)
     response.raise_for_status()
     data = response.json()
@@ -617,3 +617,607 @@ dict1 = {"A": 1, "B": 2, "C": 3}
 dict2 = {"B": 4, "C": 5, "D": 6}
 common_keys = set(dict1) & set(dict2)
 print("Q15 Common keys:", common_keys)
+
+# =====================================================================
+# ADVANCED PRACTICE (Exam-Style) SOLUTIONS (All-in-one)
+# =====================================================================
+
+print("\n--- ADVANCED PRACTICE (Exam-Style) ---\n")
+
+# Q1: Advanced String Parser and Validator
+attendance_records = [
+    "EMP001 | Ali Khan | checkin=09:10 | checkout=17:45 | dept=IT",
+    "EMP002|Sara|checkin=09:40|checkout=18:00|dept=HR",
+    "EMP003 | Ahmed Raza | checkin=10:05 | checkout=16:50 | dept=Finance",
+    "EMP001 | Ali Khan | checkin=09:15 | checkout=17:40 | dept=IT",
+    "EMP004 | | checkin=09:00 | checkout=17:00 | dept=IT",
+    "EMP005 | Hina | checkin=9x:20 | checkout=17:10 | dept=HR",
+    "EMP006 | Zoya | checkin=08:55 | checkout= | dept=Finance",
+    "Wrong Format Line",
+]
+
+id_pattern = re.compile(r"^EMP\d{3}$")
+time_pattern = re.compile(r"^\d{2}:\d{2}$")
+
+valid_attendance = []
+invalid_attendance = []
+seen_ids = set()
+
+
+def clean_line(line):
+    return " | ".join(part.strip() for part in line.strip().split("|"))
+
+
+def is_valid_name(name):
+    return bool(name) and all(ch.isalpha() or ch.isspace() for ch in name)
+
+
+def is_valid_time(t):
+    if not time_pattern.match(t):
+        return False
+    hh, mm = map(int, t.split(":"))
+    return 0 <= hh <= 23 and 0 <= mm <= 59
+
+
+for raw in attendance_records:
+    line = clean_line(raw)
+    if line.count("|") != 4:
+        invalid_attendance.append((raw, "Wrong number of fields"))
+        continue
+
+    parts = [p.strip() for p in line.split("|")]
+    emp_id, name, checkin_part, checkout_part, dept_part = parts
+
+    if not id_pattern.match(emp_id):
+        invalid_attendance.append((raw, "Invalid employee ID"))
+        continue
+
+    if emp_id in seen_ids:
+        invalid_attendance.append((raw, "Duplicate employee ID"))
+        continue
+
+    if not is_valid_name(name):
+        invalid_attendance.append((raw, "Invalid name"))
+        continue
+
+    if "checkin=" not in checkin_part or "checkout=" not in checkout_part or "dept=" not in dept_part:
+        invalid_attendance.append((raw, "Wrong field format"))
+        continue
+
+    checkin = checkin_part.split("=", 1)[1].strip()
+    checkout = checkout_part.split("=", 1)[1].strip()
+    dept = dept_part.split("=", 1)[1].strip()
+
+    if not checkin:
+        invalid_attendance.append((raw, "Missing checkin"))
+        continue
+    if not checkout:
+        invalid_attendance.append((raw, "Missing checkout"))
+        continue
+    if not is_valid_time(checkin) or not is_valid_time(checkout):
+        invalid_attendance.append((raw, "Invalid time format"))
+        continue
+
+    seen_ids.add(emp_id)
+
+    t_in = datetime.strptime(checkin, "%H:%M")
+    t_out = datetime.strptime(checkout, "%H:%M")
+    duration_minutes = int((t_out - t_in).total_seconds() / 60)
+
+    valid_attendance.append(
+        {
+            "id": emp_id,
+            "name": name,
+            "checkin": checkin,
+            "checkout": checkout,
+            "dept": dept,
+            "duration": duration_minutes,
+        }
+    )
+
+print(f"{'ID':<8}{'Name':<15}{'Dept':<10}{'CheckIn':<8}{'CheckOut':<8}{'Duration':<10}")
+print("-" * 59)
+for r in valid_attendance:
+    hours = r["duration"] // 60
+    mins = r["duration"] % 60
+    print(f"{r['id']:<8}{r['name']:<15}{r['dept']:<10}{r['checkin']:<8}{r['checkout']:<8}{hours:02}:{mins:02}")
+
+print("\nInvalid Records:")
+for raw, reason in invalid_attendance:
+    print(f"{reason}: {raw}")
+
+# Q2: Nested Data Structure Analyzer
+quiz_data = {
+    "BSCS": {
+        "Semester1": [("Ali", [8, 7, 9]), ("Sara", [9, 10, 8]), ("Ahmed", [4, 5, 6])],
+        "Semester2": [("Hina", [7, 8, 7]), ("Zoya", [10, 9, 10]), ("Bilal", [3, 4, 5])],
+    },
+    "BSSE": {
+        "Semester1": [("Usman", [6, 7, 6]), ("Areeba", [10, 10, 9])],
+        "Semester2": [("Danish", [5, 5, 6]), ("Maha", [9, 8, 9])],
+    },
+}
+
+
+def status(avg):
+    if avg >= 9:
+        return "Excellent"
+    if avg >= 7:
+        return "Good"
+    if avg >= 5:
+        return "Average"
+    return "Weak"
+
+
+def flatten_students(data):
+    flat = []
+    for program, semesters in data.items():
+        for semester, students in semesters.items():
+            for name, scores in students:
+                avg = sum(scores) / len(scores)
+                flat.append(
+                    {
+                        "program": program,
+                        "semester": semester,
+                        "name": name,
+                        "scores": scores,
+                        "average": avg,
+                    }
+                )
+    return flat
+
+
+flat = flatten_students(quiz_data)
+
+for s in flat:
+    total = sum(s["scores"])
+    print(s["program"], s["semester"], s["name"], total, f"{s['average']:.2f}", status(s["average"]))
+
+# Topper of each program
+program_toppers = {}
+for s in flat:
+    prog = s["program"]
+    if prog not in program_toppers or s["average"] > program_toppers[prog]["average"]:
+        program_toppers[prog] = s
+print("Topper each program:", {k: v["name"] for k, v in program_toppers.items()})
+
+# Weakest student overall
+weakest = min(flat, key=lambda x: x["average"])
+print("Weakest:", weakest["name"])
+
+# Program averages (dict comprehension)
+program_avg = {
+    prog: sum(s["average"] for s in flat if s["program"] == prog)
+    / len([s for s in flat if s["program"] == prog])
+    for prog in quiz_data
+}
+print("Program averages:", program_avg)
+
+# Unique scores (set comprehension)
+unique_scores = {score for s in flat for score in s["scores"]}
+print("Unique scores:", unique_scores)
+
+# Sort by average desc, name asc
+sorted_students = sorted(flat, key=lambda x: (-x["average"], x["name"]))
+print("Sorted:", [s["name"] for s in sorted_students])
+
+# Q3: File-Based Text Intelligence System
+import string
+
+
+def clean_word(word):
+    return word.strip(string.punctuation).lower()
+
+
+def is_palindrome(word):
+    return word == word[::-1]
+
+
+try:
+    with open("article.txt", "r", encoding="utf-8") as f:
+        text = f.read()
+except FileNotFoundError:
+    print("File missing.")
+else:
+    if not text.strip():
+        print("File is empty.")
+    else:
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        cleaned = " ".join(lines)
+        cleaned = cleaned.translate(str.maketrans("", "", string.punctuation))
+        words = [w.lower() for w in cleaned.split() if w.strip()]
+
+        total_chars = len(cleaned)
+        total_words = len(words)
+        unique_words = set(words)
+
+        freq = {}
+        for w in words:
+            freq[w] = freq.get(w, 0) + 1
+
+        top5 = sorted(freq.items(), key=lambda x: x[1], reverse=True)[:5]
+        longest = max(words, key=len)
+        shortest = min(words, key=len)
+        palindromes = [w for w in unique_words if is_palindrome(w) and len(w) > 1]
+        once = [w for w, c in freq.items() if c == 1]
+
+        report = [
+            f"Total chars: {total_chars}",
+            f"Total words: {total_words}",
+            f"Unique words: {len(unique_words)}",
+            f"Lines: {len(text.splitlines())}",
+            f"Non-empty lines: {len(lines)}",
+            f"Top 5 words: {top5}",
+            f"Longest word: {longest}",
+            f"Shortest word: {shortest}",
+            f"Palindromes: {palindromes}",
+            f"Words used once: {once}",
+        ]
+
+        with open("analysis_report.txt", "w", encoding="utf-8") as f:
+            f.write("\n".join(report))
+finally:
+    print("Text analysis complete.")
+
+# Q4: Modular Library Management System (single-file version)
+from pathlib import Path
+
+
+class DuplicateBookError(Exception):
+    pass
+
+
+class DuplicateMemberError(Exception):
+    pass
+
+
+class BookNotFoundError(Exception):
+    pass
+
+
+class MemberNotFoundError(Exception):
+    pass
+
+
+class NoCopiesError(Exception):
+    pass
+
+
+class BookNotBorrowedError(Exception):
+    pass
+
+
+class Book:
+    def __init__(self, book_id, title, author, total):
+        self.book_id = book_id
+        self.title = title
+        self.author = author
+        self.total = total
+        self.available = total
+
+    def __str__(self):
+        return f"{self.book_id}: {self.title} by {self.author} ({self.available}/{self.total})"
+
+
+class Member:
+    def __init__(self, member_id, name):
+        self.member_id = member_id
+        self.name = name
+        self.borrowed = []
+
+    def __str__(self):
+        return f"{self.member_id}: {self.name}, borrowed: {self.borrowed}"
+
+
+class Library:
+    def __init__(self, db_path="library_db.json"):
+        self.books = {}
+        self.members = {}
+        self.db_path = Path(db_path)
+        self.load()
+
+    def add_book(self, book):
+        if book.book_id in self.books:
+            raise DuplicateBookError()
+        self.books[book.book_id] = book
+
+    def add_member(self, member):
+        if member.member_id in self.members:
+            raise DuplicateMemberError()
+        self.members[member.member_id] = member
+
+    def search_by_id(self, book_id):
+        if book_id not in self.books:
+            raise BookNotFoundError()
+        return self.books[book_id]
+
+    def search_by_title(self, keyword):
+        return [b for b in self.books.values() if keyword.lower() in b.title.lower()]
+
+    def issue_book(self, book_id, member_id):
+        book = self.search_by_id(book_id)
+        if member_id not in self.members:
+            raise MemberNotFoundError()
+        if book.available == 0:
+            raise NoCopiesError()
+        book.available -= 1
+        self.members[member_id].borrowed.append(book_id)
+
+    def return_book(self, book_id, member_id):
+        if member_id not in self.members:
+            raise MemberNotFoundError()
+        if book_id not in self.members[member_id].borrowed:
+            raise BookNotBorrowedError()
+        self.members[member_id].borrowed.remove(book_id)
+        self.books[book_id].available += 1
+
+    def save(self):
+        data = {
+            "books": {k: vars(v) for k, v in self.books.items()},
+            "members": {k: vars(v) for k, v in self.members.items()},
+        }
+        self.db_path.write_text(json.dumps(data, indent=2))
+
+    def load(self):
+        if self.db_path.exists():
+            data = json.loads(self.db_path.read_text())
+            for b in data.get("books", {}).values():
+                book = Book(b["book_id"], b["title"], b["author"], b["total"])
+                book.available = b["available"]
+                self.books[book.book_id] = book
+            for m in data.get("members", {}).values():
+                member = Member(m["member_id"], m["name"])
+                member.borrowed = m["borrowed"]
+                self.members[member.member_id] = member
+
+
+if __name__ == "__main__":
+    lib = Library()
+    while True:
+        print("\n1.Add Book 2.Add Member 3.Issue 4.Return 5.Search 6.Available 7.Member 8.Save&Exit")
+        choice = input("Choice: ")
+        try:
+            if choice == "1":
+                lib.add_book(Book(input("ID:"), input("Title:"), input("Author:"), int(input("Total:"))))
+            elif choice == "2":
+                lib.add_member(Member(input("ID:"), input("Name:")))
+            elif choice == "3":
+                lib.issue_book(input("Book ID:"), input("Member ID:"))
+            elif choice == "4":
+                lib.return_book(input("Book ID:"), input("Member ID:"))
+            elif choice == "5":
+                print(lib.search_by_id(input("Book ID:")))
+            elif choice == "6":
+                for b in lib.books.values():
+                    print(b)
+            elif choice == "7":
+                mid = input("Member ID:")
+                print(lib.members[mid])
+            elif choice == "8":
+                lib.save()
+                break
+        except Exception as e:
+            print("Error:", type(e).__name__)
+
+# Q5: Recursive Folder-Like Data Processor
+file_system = {
+    "root": {
+        "documents": {"resume.docx": 120, "report.pdf": 850, "notes.txt": 40},
+        "images": {"profile.png": 300, "banner.jpg": 700},
+        "projects": {
+            "python": {"main.py": 25, "utils.py": 15, "README.md": 10},
+            "web": {"index.html": 20, "style.css": 18},
+        },
+    }
+}
+
+
+def print_tree(node, indent=0):
+    # base case: file (int size)
+    if isinstance(node, int):
+        return
+    # recursive case: folder
+    for name, content in node.items():
+        if isinstance(content, dict):
+            print("  " * indent + f"{name}/")
+            print_tree(content, indent + 1)
+        else:
+            print("  " * indent + f"{name} - {content} KB")
+
+
+def total_size(node):
+    if isinstance(node, int):  # base case
+        return node
+    return sum(total_size(v) for v in node.values())  # recursive case
+
+
+def find_largest(node, path=""):
+    largest = ("", 0)
+    for name, content in node.items():
+        if isinstance(content, dict):
+            cand = find_largest(content, path + name + "/")
+            if cand[1] > largest[1]:
+                largest = cand
+        else:
+            if content > largest[1]:
+                largest = (path + name, content)
+    return largest
+
+
+def count_files_folders(node):
+    files = 0
+    folders = 0
+    for content in node.values():
+        if isinstance(content, dict):
+            folders += 1
+            f, fo = count_files_folders(content)
+            files += f
+            folders += fo
+        else:
+            files += 1
+    return files, folders
+
+
+def search_file(node, filename, path=""):
+    if not filename:
+        return None
+    for name, content in node.items():
+        if isinstance(content, dict):
+            found = search_file(content, filename, path + name + "/")
+            if found:
+                return found
+        else:
+            if name == filename:
+                return path + name
+    return None
+
+
+def report(*args):
+    for item in args:
+        print(item)
+
+
+print_tree(file_system)
+print("Total size:", total_size(file_system))
+largest = find_largest(file_system["root"], "root/")
+print("Largest:", largest)
+files, folders = count_files_folders(file_system["root"])
+print("Files:", files, "Folders:", folders)
+top_sizes = {k: total_size(v) for k, v in file_system["root"].items()}
+print("Top folder sizes:", top_sizes)
+print("Search:", search_file(file_system, "report.pdf"))
+
+# Q6: Mini Banking Transaction Engine
+transactions = [
+    "TXN001, ACC1001, deposit, 5000",
+    "TXN002, ACC1001, withdraw, 1200",
+    "TXN003, ACC1002, deposit, 7000",
+    "TXN004, ACC1001, transfer, 1000, ACC1002",
+    "TXN005, ACC1003, withdraw, 500",
+    "TXN006, ACC1002, withdraw, -300",
+    "TXN002, ACC1001, deposit, 2000",
+    "BAD LINE HERE",
+    "TXN007, ACC1002, transfer, 1500, ACC9999",
+]
+
+accounts = {"ACC1001": 10000, "ACC1002": 8000, "ACC1003": 300}
+
+
+class InvalidTransactionError(Exception):
+    pass
+
+
+class InsufficientBalanceError(Exception):
+    pass
+
+
+class DuplicateTransactionError(Exception):
+    pass
+
+
+class AccountNotFoundError(Exception):
+    pass
+
+
+class Account:
+    def __init__(self, acc_id, balance):
+        self.id = acc_id
+        self.balance = balance
+        self.history = []
+
+
+class Transaction:
+    def __init__(self, tid, acc, ttype, amt, receiver=None):
+        self.tid = tid
+        self.acc = acc
+        self.ttype = ttype
+        self.amt = amt
+        self.receiver = receiver
+
+
+class Bank:
+    def __init__(self, accounts):
+        self.accounts = {k: Account(k, v) for k, v in accounts.items()}
+        self.seen_txn = set()
+        self.rejected = []
+
+    def validate(self, parts):
+        if len(parts) not in (4, 5):
+            raise InvalidTransactionError("Malformed record")
+        tid, acc, ttype, amt = parts[:4]
+        receiver = parts[4] if len(parts) == 5 else None
+
+        if tid in self.seen_txn:
+            raise DuplicateTransactionError("Duplicate TXN")
+        if acc not in self.accounts:
+            raise AccountNotFoundError("Account not found")
+        if ttype not in ("deposit", "withdraw", "transfer"):
+            raise InvalidTransactionError("Invalid type")
+        if amt <= 0:
+            raise InvalidTransactionError("Invalid amount")
+        if ttype == "transfer" and (not receiver or receiver not in self.accounts):
+            raise InvalidTransactionError("Invalid receiver")
+
+        return Transaction(tid, acc, ttype, amt, receiver)
+
+    def apply(self, txn):
+        acc = self.accounts[txn.acc]
+        if txn.ttype == "deposit":
+            acc.balance += txn.amt
+        elif txn.ttype == "withdraw":
+            if acc.balance < txn.amt:
+                raise InsufficientBalanceError("Insufficient balance")
+            acc.balance -= txn.amt
+        else:
+            if acc.balance < txn.amt:
+                raise InsufficientBalanceError("Insufficient balance")
+            acc.balance -= txn.amt
+            self.accounts[txn.receiver].balance += txn.amt
+
+        acc.history.append(txn.__dict__)
+        self.seen_txn.add(txn.tid)
+
+
+bank = Bank(accounts)
+
+total_deposit = 0
+total_withdraw = 0
+total_transfer = 0
+
+for line in transactions:
+    try:
+        parts = [p.strip() for p in line.split(",")]
+        tid, acc, ttype = parts[0], parts[1], parts[2]
+        if len(parts) >= 4:
+            amount = float(parts[3])
+        else:
+            raise InvalidTransactionError("Missing amount")
+        parsed_parts = [tid, acc, ttype, amount] + parts[4:]
+        txn = bank.validate(parsed_parts)
+        bank.apply(txn)
+        if txn.ttype == "deposit":
+            total_deposit += txn.amt
+        if txn.ttype == "withdraw":
+            total_withdraw += txn.amt
+        if txn.ttype == "transfer":
+            total_transfer += txn.amt
+    except Exception as e:
+        bank.rejected.append((line, str(e)))
+    finally:
+        pass
+
+sorted_accounts = sorted(bank.accounts.values(), key=lambda a: a.balance, reverse=True)
+print("Final balances:", {a.id: a.balance for a in sorted_accounts})
+print("Totals:", total_deposit, total_withdraw, total_transfer)
+print("Highest:", sorted_accounts[0].id, "Lowest:", sorted_accounts[-1].id)
+
+with open("balances.txt", "w", encoding="utf-8") as f:
+    for a in bank.accounts.values():
+        f.write(f"{a.id} {a.balance}\n")
+
+with open("rejected.txt", "w", encoding="utf-8") as f:
+    for r in bank.rejected:
+        f.write(f"{r}\n")
+
+with open("history.json", "w", encoding="utf-8") as f:
+    json.dump({a.id: a.history for a in bank.accounts.values()}, f, indent=2)
