@@ -1,7 +1,7 @@
 """NAVTTC Advance Python — Master Reference
 
 This single file is a compact, hands-on reference covering core and advanced
-Python concepts. Each section is runnable and includes short examples.
+Python concepts, plus sample mini-projects and important practice questions.
 """
 
 # ------------------------------
@@ -269,7 +269,7 @@ print("Modules: Use 'import module_name' to reuse code")
 # 21) Type Hints
 # ------------------------------
 
-from typing import List, Dict
+from typing import List
 
 
 def average(values: List[int]) -> float:
@@ -387,3 +387,233 @@ asyncio.run(run_async())
 # ------------------------------
 
 print("Project tip: Use src/, tests/, requirements.txt, and README.md")
+
+# =====================================================================
+# IMPORTANT QUESTIONS + READY-MADE SAMPLE PROJECTS (All-in-one)
+# =====================================================================
+
+print("\n--- IMPORTANT QUESTIONS + SAMPLE PROJECTS ---\n")
+
+# 1) Calculate sum and average of a list of numbers
+numbers = [10, 20, 30, 40, 50]
+sum_numbers = sum(numbers)
+avg_numbers = sum_numbers / len(numbers)
+print("Q1 Sum:", sum_numbers, "Average:", avg_numbers)
+
+# 2) Consuming an API (Streamlit frontend app)
+# Save this block as api_frontend_app.py and run: streamlit run api_frontend_app.py
+api_frontend_app = """\
+import streamlit as st
+import requests
+import pandas as pd
+
+st.set_page_config(page_title=\"REST API Consumer\", layout=\"wide\")
+st.title(\"RESTful API Consumer Frontend\")
+st.write(\"Consumes JSONPlaceholder API and displays data.\")
+
+BASE_URL = \"https://jsonplaceholder.typicode.com\"
+endpoint = st.selectbox(\"Select endpoint:\", [\"posts\", \"users\", \"comments\", \"albums\", \"todos\"])
+
+if st.button(\"Fetch Data\"):
+    url = f\"{BASE_URL}/{endpoint}\"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    df = pd.DataFrame(data)
+    st.dataframe(df, use_container_width=True)
+"""
+
+# 3) Visualizations (bar chart, pie chart)
+import pandas as pd
+import matplotlib.pyplot as plt
+
+products = pd.DataFrame(
+    {"Category": ["Electronics", "Clothing", "Food"], "Count": [25, 35, 40]}
+)
+products.plot(x="Category", y="Count", kind="bar", legend=False, title="Product Distribution")
+plt.tight_layout()
+plt.show()
+
+plt.figure()
+plt.pie(products["Count"], labels=products["Category"], autopct="%1.1f%%")
+plt.title("Product Distribution")
+plt.show()
+
+# 4) Image classification (skeleton with Keras)
+# Requires: tensorflow
+image_classification_template = """\
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+model = models.Sequential([
+    layers.Rescaling(1./255, input_shape=(128, 128, 3)),
+    layers.Conv2D(16, 3, activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Conv2D(32, 3, activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(3, activation='softmax')  # cats, dogs, birds
+])
+
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+"""
+
+# 5) Sort dictionary by values
+scores = {"Alice": 85, "Bob": 92, "Eve": 78, "David": 88}
+sorted_scores = dict(sorted(scores.items(), key=lambda item: item[1]))
+print("Q5 Sorted scores:", sorted_scores)
+
+# 6) Read file, process, write output
+# Example processing: uppercase all lines
+input_path = "input.txt"
+output_path = "output.txt"
+with open(input_path, "w", encoding="utf-8") as f:
+    f.write("hello\nnavttc\npython")
+
+with open(input_path, "r", encoding="utf-8") as f:
+    processed = [line.strip().upper() for line in f]
+
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write("\n".join(processed))
+
+# 7) Creating RESTful API with Django REST Framework (project template)
+django_rest_api_template = """\
+# Install: pip install django djangorestframework
+# Create project: django-admin startproject student_api_project
+# Create app: python manage.py startapp api
+# Add 'rest_framework' and 'api' to INSTALLED_APPS
+# Define Student model, serializer, and ViewSet
+# Use DefaultRouter to register /api/students/
+"""
+
+# 8) Inheritance with Animal -> Dog/Cat
+class Animal:
+    def speak(self):
+        return "..."
+
+
+class Dog(Animal):
+    def speak(self):
+        return "Woof Woof"
+
+
+class Cat(Animal):
+    def speak(self):
+        return "Meow"
+
+
+dog = Dog()
+cat = Cat()
+print("Q8:", f"Dog says: {dog.speak()}, Cat says: {cat.speak()}")
+
+# 9) Customer purchase prediction (classification skeleton)
+ml_classification_template = """\
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+
+# data = pd.read_csv('customers.csv')
+# X = data.drop('purchase', axis=1)
+# y = data['purchase']
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# scaler = StandardScaler()
+# X_train = scaler.fit_transform(X_train)
+# X_test = scaler.transform(X_test)
+# model = LogisticRegression()
+# model.fit(X_train, y_train)
+# print(classification_report(y_test, model.predict(X_test)))
+"""
+
+# 10) Flask-Login authentication (template)
+flask_login_template = """\
+from flask import Flask, redirect, url_for, request
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+
+app = Flask(__name__)
+app.secret_key = 'secret'
+
+login_manager = LoginManager(app)
+
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+users = {'admin': {'password': 'admin123'}}
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username in users and users[username]['password'] == password:
+            login_user(User(username))
+            return redirect(url_for('protected'))
+    return 'Login Page'
+
+@app.route('/protected')
+@login_required
+def protected():
+    return 'Protected Page'
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return 'Logged out'
+"""
+
+# 11) Shape base class with Circle and Rectangle
+class Shape:
+    def area(self):
+        return 0
+
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+
+    def area(self):
+        return math.pi * self.radius * self.radius
+
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return self.width * self.height
+
+
+circle = Circle(5)
+rectangle = Rectangle(4, 6)
+print("Q11:", f"Circle Area: {circle.area():.2f}, Rectangle Area: {rectangle.area()}")
+
+# 12) Read file and display contents with error handling
+try:
+    with open("input.txt", "r", encoding="utf-8") as f:
+        print("Q12 Contents:\n", f.read())
+except FileNotFoundError:
+    print("Q12: input.txt not found")
+
+# 13) Sentiment trends from reviews (simple keyword approach)
+reviews = [
+    ("Great product", "positive"),
+    ("Bad quality", "negative"),
+    ("Excellent service", "positive"),
+]
+trend = Counter(sentiment for _, sentiment in reviews)
+print("Q13 Sentiment trend:", trend)
+
+# 15) Common keys between dictionaries
+dict1 = {"A": 1, "B": 2, "C": 3}
+dict2 = {"B": 4, "C": 5, "D": 6}
+common_keys = set(dict1) & set(dict2)
+print("Q15 Common keys:", common_keys)
